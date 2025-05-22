@@ -1,0 +1,16 @@
+def extended_gcd(a, b):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        g, y, x = extended_gcd(b % a, a)
+        return (g, x - (b // a) * y, y)
+
+def mod_inverse(a, n):
+    g, x, y = extended_gcd(a, n)
+    if g != 1:
+        return 0  # обратного элемента не существует
+    else:
+        return x % n  # приведение к положительному остатку
+
+a, n = map(int, input().split())
+print(mod_inverse(a, n),"\nВыполнил Соколов Дмитрий Владимирович 090304-РПИб-024")
