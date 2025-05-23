@@ -1,0 +1,74 @@
+from collections import defaultdict, deque
+
+def is_contradictory_and_complete(pairs):
+    graph = defaultdict(set)
+    in_degree = defaultdict(int)
+    all_chars = set()
+    
+    # Построение графа и подсчёт входящих степеней
+    for a, b in pairs:
+        if b not in graph[a]:
+            graph[a].add(b)
+            in_degree[b] += 1
+        all_chars.add(a)
+        all_chars.add(b)
+    
+    # Проверка на противоречивость (наличие циклов)
+    def has_cycle():
+        visited = set()
+        recursion_stack = set()
+        
+        def dfs(node):
+            visited.add(node)
+            recursion_stack.add(node)
+            for neighbor in graph.get(node, set()):
+                if neighbor not in visited:
+                    if dfs(neighbor):
+                        return True
+                elif neighbor in recursion_stack:
+                    return True
+            recursion_stack.remove(node)
+            return False
+        
+        for node in all_chars:
+            if node not in visited:
+                if dfs(node):
+                    return True
+        return False
+    
+    if has_cycle():
+        return (True, False)  # Противоречива, не полная
+    
+    # Проверка на полноту (единственность топологического порядка)
+    def is_unique_topological_order():
+        queue = deque()
+        # Находим все узлы с нулевой входящей степенью
+        for node in all_chars:
+            if in_degree[node] == 0:
+                queue.append(node)
+        
+        unique_order = True
+        topological_order = []
+        
+        while queue:
+            if len(queue) > 1:
+                unique_order = False
+                break
+            node = queue.popleft()
+            topological_order.append(node)
+            
+            for neighbor in graph.get(node, set()):
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+        
+        return unique_order
+    
+    is_complete = is_unique_topological_order()
+    return (False, is_complete)  # Не противоречива, полная или нет
+
+# Пример использования
+pairs = [('b', 'c'), ('c', 'a')]
+contradictory, complete = is_contradictory_and_complete(pairs)
+print(f"Противоречивая: {contradictory}")
+print(f"Полная: {complete}")
