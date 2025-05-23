@@ -72,3 +72,4 @@ pairs = [('b', 'c'), ('c', 'a')]
 contradictory, complete = is_contradictory_and_complete(pairs)
 print(f"Противоречивая: {contradictory}")
 print(f"Полная: {complete}")
+print("Выполнил Соколов Дмитрий Владимирович 090304Рпиб024")
