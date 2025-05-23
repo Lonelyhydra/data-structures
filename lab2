@@ -1,0 +1,74 @@
+import numpy as np
+import time
+from scipy.linalg.blas import cblas_cgemm
+
+def generate_random_complex_matrix(n):
+    return np.random.rand(n, n).astype(np.complex64) + 1j * np.random.rand(n, n).astype(np.complex64)
+
+def matrix_multiply_classic(A, B):
+    n = A.shape[0]
+    C = np.zeros((n, n), dtype=np.complex64)
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                C[i, j] += A[i, k] * B[k, j]
+    return C
+
+def matrix_multiply_blas(A, B):
+    alpha = np.complex64(1.0)
+    beta = np.complex64(0.0)
+    # cblas_cgemm expects matrices in Fortran order, so we transpose them
+    A = np.asfortranarray(A)
+    B = np.asfortranarray(B)
+    return cblas_cgemm(alpha, A, B, beta)
+
+def matrix_multiply_optimized(A, B):
+    return np.dot(A, B)
+
+def evaluate_performance(multiply_func, A, B, method_name):
+    n = A.shape[0]
+    c = 2 * n ** 3  # Сложность алгоритма
+    
+    # Прогрев (чтобы избежать влияния cold start)
+    multiply_func(A, B)
+    
+    start_time = time.time()
+    C = multiply_func(A, B)
+    end_time = time.time()
+    
+    t = end_time - start_time
+    mflops = (c / t) * 1e-6
+    
+    print(f"Метод: {method_name}")
+    print(f"Время выполнения: {t:.4f} сек")
+    print(f"Производительность: {mflops:.2f} MFlops")
+    print("-" * 50)
+    return C
+
+def main():
+    np.random.seed(42)
+    n = 2048
+    print(f"Генерация случайных матриц {n}x{n}...")
+    A = generate_random_complex_matrix(n)
+    B = generate_random_complex_matrix(n)
+    
+    print("Замер производительности...\n")
+    
+    # 1. Классический метод
+    C_classic = evaluate_performance(matrix_multiply_classic, A, B, "Классический (тройной цикл)")
+    
+    # 2. BLAS (cblas_cgemm)
+    C_blas = evaluate_performance(matrix_multiply_blas, A, B, "BLAS (cblas_cgemm)")
+    
+    # 3. Оптимизированный (numpy.dot)
+    C_optimized = evaluate_performance(matrix_multiply_optimized, A, B, "Оптимизированный (numpy.dot)")
+    
+    # Проверка корректности (погрешности из-за разных реализаций)
+    error_blas = np.max(np.abs(C_blas - C_optimized))
+    error_classic = np.max(np.abs(C_classic - C_optimized))
+    print(f"Максимальная погрешность (BLAS vs оптимизированный): {error_blas:.3e}")
+    print(f"Максимальная погрешность (классический vs оптимизированный): {error_classic:.3e}")
+
+if __name__ == "__main__":
+    main()
+    print("Выполнил Соколов Дмитрий Владимирович 090304Рпиб024")
